@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Historische Kartenanwendung</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha384-okbbMvvx/qfQkmiQKfd5VifbKZ/W8p1qIsWvE1ROPUfHWsDcC8/BnHohF7vPg2T6" crossorigin=""></script>
+    <style type="text/css">
+        body { margin: 0; padding: 0; }
+        html, body, #map { width: 100%; height: 100%; }
+        #menu { 
+            margin: 10px; 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            z-index: 1000; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+        }
+        #transparency { width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <label for="mapSelect">Wählen Sie eine historische Karte:</label>
+        <select id="mapSelect">
+            <option value="">--Bitte wählen--</option>
+            <option value="https://warper.wmflabs.org/maps/tile/6795/{z}/{x}/{y}.png">Berlin 13. Jhdt</option>
+            <option value="https://warper.wmflabs.org/maps/tile/184/{z}/{x}/{y}.png">Berlin 1712</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1729/{z}/{x}/{y}.png">Zentralmarkthalle 1729</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1144/{z}/{x}/{y}.png">Berlin 1738</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1141/{z}/{x}/{y}.png">Berlin 1739</option>
+            <option value="https://warper.wmflabs.org/maps/tile/486/{z}/{x}/{y}.png">Berlin 1778</option>
+            <option value="https://warper.wmflabs.org/maps/tile/467/{z}/{x}/{y}.png">Berlin 1811</option>
+            <option value="https://warper.wmflabs.org/maps/tile/471/{z}/{x}/{y}.png">Berlin u. Umg. 1816</option>
+            <option value="https://warper.wmflabs.org/maps/tile/286/{z}/{x}/{y}.png">Berlin 1833</option>
+            <option value="https://warper.wmflabs.org/maps/tile/478/{z}/{x}/{y}.png">Berlin 1849</option>
+            <option value="https://warper.wmflabs.org/maps/tile/288/{z}/{x}/{y}.png">Berlin 1862</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1129/{z}/{x}/{y}.png">Berlin 1864</option>
+            <option value="https://warper.wmflabs.org/maps/tile/483/{z}/{x}/{y}.png">Berlin 1895</option>
+            <option value=https://warper.wmflabs.org/maps/tile/1220/{z}/{x}/{y}.png">Berlin 1910</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1123/{z}/{x}/{y}.png">Berlin u. Umg. 1913</option>
+            <option value="https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png">Berlin 1925</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1145/{z}/{x}/{y}.png">Berlin 1925</option>
+            <option value="https://warper.wmflabs.org/maps/tile/190/{z}/{x}/{y}.png">Berlin 1928</option>
+            <option value="https://warper.wmflabs.org/maps/tile/206/{z}/{x}/{y}.png">Spandau 1912</option>
+            <option value="https://warper.wmflabs.org/maps/tile/208/{z}/{x}/{y}.png">Spandau 1913</option>
+            <option value="https://warper.wmflabs.org/maps/tile/202/{z}/{x}/{y}.png">Spandau 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2238/{z}/{x}/{y}.png">Tiergarten 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2209/{z}/{x}/{y}.png">Tiergarten 1765</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2210/{z}/{x}/{y}.png">Tiergarten 1793</option>
+            <option value="https://warper.wmflabs.org/maps/tile/490/{z}/{x}/{y}.png">Grunewald 1911</option>
+            <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
+            <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
+        </select>
+        <br>
+        <label for="transparency">Transparenz:</label>
+        <input type="range" id="transparency" min="0" max="1" step="0.1" value="1">
+    </div>
+    <div id="map"></div>
+    <script>
+        // Initialisierung der Karte
+        var map = L.map('map', {
+            attributionControl: false
+        }).setView([52.5200, 13.4050], 13); // Setzen Sie die initiale Ansicht auf das Zentrum von Berlin
+        L.control.attribution({ prefix: false }).addTo(map);
+
+        // Hinzufügen der OpenStreetMap Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var historicalLayer;
+        var transparencyControl = document.getElementById('transparency');
+
+        document.getElementById('mapSelect').addEventListener('change', function() {
+            var selectedValue = this.value;
+            if (historicalLayer) {
+                map.removeLayer(historicalLayer);
+            }
+            if (selectedValue) {
+                historicalLayer = L.tileLayer(selectedValue, {
+                    minZoom: 12,
+                    maxZoom: 19,
+                    tms: false,
+                    attribution: 'Historische Karte © [Ihr Name oder Quelle]'
+                }).addTo(map);
+                historicalLayer.setOpacity(transparencyControl.value);
+            }
+        });
+
+        transparencyControl.addEventListener('input', function() {
+            if (historicalLayer) {
+                historicalLayer.setOpacity(this.value);
+            }
+        });
+
+        // GPS-Funktionalität
+        function onLocationFound(e) {
+            var radius = e.accuracy / 2;
+
+            L.marker(e.latlng).addTo(map)
+                .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+            L.circle(e.latlng, radius).addTo(map);
+        }
+
+        function onLocationError(e) {
+            alert(e.message);
+        }
+
+        map.on('locationfound', onLocationFound);
+        map.on('locationerror', onLocationError);
+
+        map.locate({setView: true, maxZoom: 16});
+    </script>
+</body>
+</html>
