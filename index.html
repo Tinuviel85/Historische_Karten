@@ -57,6 +57,17 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
+            <option value="https://www.mapwarper.net/maps/tile/77649/{z}/{x}/{y}.png">Europa antik</option>
+            <option value="https://www.mapwarper.net/maps/tile/31241/{z}/{x}/{y}.png">Europa 1644</option>
+            <option value="https://www.mapwarper.net/maps/tile/40364/{z}/{x}/{y}.png">Europa 1648</option>
+            <option value="https://www.mapwarper.net/maps/tile/34111/{z}/{x}/{y}.png">Europa 1790</option>
+            <option value="https://www.mapwarper.net/maps/tile/46121/{z}/{x}/{y}.png">Europa 1815</option>
+            <option value="https://mapwarper.prov.vic.gov.au/maps/tile/5505/{z}/{x}/{y}.png">Europa 1859</option>
+            <option value="https://www.mapwarper.net/maps/tile/75489/{z}/{x}/{y}.png">Europa 1912</option>
+            <option value="https://www.mapwarper.net/maps/tile/23789/{z}/{x}/{y}.png">Europa 1914</option>
+            <option value="https://www.mapwarper.net/maps/tile/39802/{z}/{x}/{y}.png">Europa 1955</option>
+            <option value="https://www.mapwarper.net/maps/tile/74989/{z}/{x}/{y}.png">Preussen</option>
+            <option value="https://mapwarper.net/maps/tile/77491/{z}/{x}/{y}.png">Messegelände Berlin</option>
             <!-- Weitere Karten hier einfügen -->
         </select>
         <br>
@@ -94,6 +105,17 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
+            <option value="https://www.mapwarper.net/maps/tile/77649/{z}/{x}/{y}.png">Europa antik</option>
+            <option value="https://www.mapwarper.net/maps/tile/31241/{z}/{x}/{y}.png">Europa 1644</option>
+            <option value="https://www.mapwarper.net/maps/tile/40364/{z}/{x}/{y}.png">Europa 1648</option>
+            <option value="https://www.mapwarper.net/maps/tile/34111/{z}/{x}/{y}.png">Europa 1790</option>
+            <option value="https://www.mapwarper.net/maps/tile/46121/{z}/{x}/{y}.png">Europa 1815</option>
+            <option value="https://mapwarper.prov.vic.gov.au/maps/tile/5505/{z}/{x}/{y}.png">Europa 1859</option>
+            <option value="https://www.mapwarper.net/maps/tile/75489/{z}/{x}/{y}.png">Europa 1912</option>
+            <option value="https://www.mapwarper.net/maps/tile/23789/{z}/{x}/{y}.png">Europa 1914</option>
+            <option value="https://www.mapwarper.net/maps/tile/39802/{z}/{x}/{y}.png">Europa 1955</option>
+            <option value="https://www.mapwarper.net/maps/tile/74989/{z}/{x}/{y}.png">Preussen</option>
+            <option value="https://mapwarper.net/maps/tile/77491/{z}/{x}/{y}.png">Messegelände Berlin</option>
             <!-- Weitere Karten hier einfügen -->
         </select>
         <br>
@@ -141,7 +163,7 @@
             }
             if (selectedValue) {
                 historicalLayer2 = L.tileLayer(selectedValue, {
-                    minZoom: 12,
+                    minZoom: 1,
                     maxZoom: 19,
                     tms: false,
                     attribution: 'Historische Karte © [Ihr Name oder Quelle]'
