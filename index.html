@@ -57,18 +57,7 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
-            <option value="https://www.mapwarper.net/maps/tile/77649/{z}/{x}/{y}.png">Europa antik</option>
-            <option value="https://www.mapwarper.net/maps/tile/31241/{z}/{x}/{y}.png">Europa 1644</option>
-            <option value="https://www.mapwarper.net/maps/tile/40364/{z}/{x}/{y}.png">Europa 1648</option>
-            <option value="https://www.mapwarper.net/maps/tile/34111/{z}/{x}/{y}.png">Europa 1790</option>
-            <option value="https://www.mapwarper.net/maps/tile/46121/{z}/{x}/{y}.png">Europa 1815</option>
-            <option value="https://mapwarper.prov.vic.gov.au/maps/tile/5505/{z}/{x}/{y}.png">Europa 1859</option>
-            <option value="https://www.mapwarper.net/maps/tile/75489/{z}/{x}/{y}.png">Europa 1912</option>
-            <option value="https://www.mapwarper.net/maps/tile/23789/{z}/{x}/{y}.png">Europa 1914</option>
-            <option value="https://www.mapwarper.net/maps/tile/39802/{z}/{x}/{y}.png">Europa 1955</option>
-            <option value="https://www.mapwarper.net/maps/tile/74989/{z}/{x}/{y}.png">Preussen</option>
-            <option value="https://mapwarper.net/maps/tile/77491/{z}/{x}/{y}.png">Messegelände Berlin</option>        
-	</select>
+        </select>
         <br>
         <label for="transparency1">Transparenz der ersten Karte:</label>
         <input type="range" id="transparency1" min="0" max="1" step="0.1" value="1">
@@ -104,17 +93,6 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
-            <option value="https://www.mapwarper.net/maps/tile/77649/{z}/{x}/{y}.png">Europa antik</option>
-            <option value="https://www.mapwarper.net/maps/tile/31241/{z}/{x}/{y}.png">Europa 1644</option>
-            <option value="https://www.mapwarper.net/maps/tile/40364/{z}/{x}/{y}.png">Europa 1648</option>
-            <option value="https://www.mapwarper.net/maps/tile/34111/{z}/{x}/{y}.png">Europa 1790</option>
-            <option value="https://www.mapwarper.net/maps/tile/46121/{z}/{x}/{y}.png">Europa 1815</option>
-            <option value="https://mapwarper.prov.vic.gov.au/maps/tile/5505/{z}/{x}/{y}.png">Europa 1859</option>
-            <option value="https://www.mapwarper.net/maps/tile/75489/{z}/{x}/{y}.png">Europa 1912</option>
-            <option value="https://www.mapwarper.net/maps/tile/23789/{z}/{x}/{y}.png">Europa 1914</option>
-            <option value="https://www.mapwarper.net/maps/tile/39802/{z}/{x}/{y}.png">Europa 1955</option>
-            <option value="https://www.mapwarper.net/maps/tile/74989/{z}/{x}/{y}.png">Preussen</option>
-            <option value="https://mapwarper.net/maps/tile/77491/{z}/{x}/{y}.png">Messegelände Berlin</option> 
         </select>
         <br>
         <label for="transparency2">Transparenz der zweiten Karte:</label>
@@ -183,13 +161,23 @@
         });
 
         // GPS-Funktionalität
+        var locationMarker, locationCircle, locationAccuracy;
+
         function onLocationFound(e) {
+            if (locationMarker) {
+                map.removeLayer(locationMarker);
+                map.removeLayer(locationCircle);
+                map.removeLayer(locationAccuracy);
+            }
+
             var radius = e.accuracy / 2;
 
-            L.marker(e.latlng).addTo(map)
+            locationMarker = L.marker(e.latlng).addTo(map)
                 .bindPopup("You are within " + radius + " meters from this point").openPopup();
 
-            L.circle(e.latlng, radius).addTo(map);
+            locationCircle = L.circle(e.latlng, radius).addTo(map);
+
+            locationAccuracy = L.polygon(getDirectionPolygon(e.latlng, e.heading), {color: 'blue', fillOpacity: 0.5}).addTo(map);
         }
 
         function onLocationError(e) {
@@ -199,7 +187,18 @@
         map.on('locationfound', onLocationFound);
         map.on('locationerror', onLocationError);
 
-        map.locate({setView: true, maxZoom: 16});
+        map.locate({setView: true, maxZoom: 16, watch: true});
+
+        function getDirectionPolygon(center, heading) {
+            var angle = (heading !== undefined) ? heading : 0;
+            var length = 100; // Länge des Richtungspolygons
+            var angleRadians = angle * (Math.PI / 180);
+
+            var point1 = [center.lat + (length * Math.cos(angleRadians + (Math.PI / 6))), center.lng + (length * Math.sin(angleRadians + (Math.PI / 6)))];
+            var point2 = [center.lat + (length * Math.cos(angleRadians - (Math.PI / 6))), center.lng + (length * Math.sin(angleRadians - (Math.PI / 6)))];
+
+            return [center, point1, point2];
+        }
     </script>
 </body>
 </html>
