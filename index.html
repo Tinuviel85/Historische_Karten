@@ -57,6 +57,7 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
+            <!-- Weitere Karten hier einfügen -->
         </select>
         <br>
         <label for="transparency1">Transparenz der ersten Karte:</label>
@@ -93,6 +94,7 @@
             <option value="https://warper.wmflabs.org/maps/tile/1127/{z}/{x}/{y}.png">Charlottenburg u. Westend 1883</option>
             <option value="https://warper.wmflabs.org/maps/tile/194/{z}/{x}/{y}.png">Nordberlin u. Spandau 1909</option>
             <option value="https://warper.wmflabs.org/maps/tile/2679/{z}/{x}/{y}.png">Akzisemauer</option>
+            <!-- Weitere Karten hier einfügen -->
         </select>
         <br>
         <label for="transparency2">Transparenz der zweiten Karte:</label>
@@ -191,13 +193,26 @@
 
         function getDirectionPolygon(center, heading) {
             var angle = (heading !== undefined) ? heading : 0;
-            var length = 100; // Länge des Richtungspolygons
+            var length = 20; // Kleinere Länge für Richtungspolygon
             var angleRadians = angle * (Math.PI / 180);
 
-            var point1 = [center.lat + (length * Math.cos(angleRadians + (Math.PI / 6))), center.lng + (length * Math.sin(angleRadians + (Math.PI / 6)))];
-            var point2 = [center.lat + (length * Math.cos(angleRadians - (Math.PI / 6))), center.lng + (length * Math.sin(angleRadians - (Math.PI / 6)))];
+            var point1 = [center.lat + (length * Math.cos(angleRadians + (Math.PI / 12))), center.lng + (length * Math.sin(angleRadians + (Math.PI / 12)))];
+            var point2 = [center.lat + (length * Math.cos(angleRadians - (Math.PI / 12))), center.lng + (length * Math.sin(angleRadians - (Math.PI / 12)))];
 
             return [center, point1, point2];
+        }
+
+        // Kompassfunktion hinzufügen, um die Rotation zu ermöglichen
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function(event) {
+                if (event.alpha !== null) {
+                    var heading = 360 - event.alpha; // Kompassrichtung
+                    if (locationAccuracy) {
+                        map.removeLayer(locationAccuracy);
+                        locationAccuracy = L.polygon(getDirectionPolygon(locationMarker.getLatLng(), heading), {color: 'blue', fillOpacity: 0.5}).addTo(map);
+                    }
+                }
+            }, true);
         }
     </script>
 </body>
