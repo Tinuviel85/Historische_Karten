@@ -162,4 +162,20 @@
         map.on('moveend', function() {
             setTimeout(function() {
                 userPanned = false;
-            }, 5000); // Wartezeit von 5 Sekunden nach der letzten manuellen Verschieb
+            }, 5000); // Wartezeit von 5 Sekunden nach der letzten manuellen Verschiebung
+});
+
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(updateGPSPosition, handleError, {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 5000
+        });
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+    }
+</script>
+
+</body>
+</html>
+               
