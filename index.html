@@ -21,44 +21,23 @@
             padding: 10px; 
             border-radius: 5px; 
         }
-        #transparency1, #transparency2 { width: 100%; }
+        #transparency1 { width: 100%; }
+        #centerButton {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div id="menu">
-        <label for="mapSelect1">Wählen Sie die erste historische Karte:</label>
-        <select id="mapSelect1">
-            <option value="">--Bitte wählen--</option>
-            <option value="https://warper.wmflabs.org/maps/tile/1220/{z}/{x}/{y}.png">Berlin 1910</option>
-            <option value="https://warper.wmflabs.org/maps/tile/288/{z}/{x}/{y}.png">Berlin 1862</option>
-            <option value="https://warper.wmflabs.org/maps/tile/486/{z}/{x}/{y}.png">Berlin 1778</option>
-            <option value="https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png">Berlin 1925</option>
-            <option value="https://warper.wmflabs.org/maps/tile/206/{z}/{x}/{y}.png">Spandau 1912</option>
-            <option value="https://warper.wmflabs.org/maps/tile/208/{z}/{x}/{y}.png">Spandau 1913</option>
-            <option value="https://warper.wmflabs.org/maps/tile/202/{z}/{x}/{y}.png">Spandau 1835</option>
-            <option value="https://warper.wmflabs.org/maps/tile/2238/{z}/{x}/{y}.png">Tiergarten 1835</option>
-            <option value="https://warper.wmflabs.org/maps/tile/2210/{z}/{x}/{y}.png">Tiergarten 1793</option>
-        </select>
-        <br>
-        <label for="transparency1">Transparenz der ersten Karte:</label>
+        <label for="transparency1">Transparenz der Karte:</label>
         <input type="range" id="transparency1" min="0" max="1" step="0.1" value="1">
-        <br>
-        <label for="mapSelect2">Wählen Sie die zweite historische Karte:</label>
-        <select id="mapSelect2">
-            <option value="">--Bitte wählen--</option>
-            <option value="https://warper.wmflabs.org/maps/tile/1220/{z}/{x}/{y}.png">Berlin 1910</option>
-            <option value="https://warper.wmflabs.org/maps/tile/288/{z}/{x}/{y}.png">Berlin 1862</option>
-            <option value="https://warper.wmflabs.org/maps/tile/486/{z}/{x}/{y}.png">Berlin 1778</option>
-            <option value="https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png">Berlin 1925</option>
-            <option value="https://warper.wmflabs.org/maps/tile/206/{z}/{x}/{y}.png">Spandau 1912</option>
-            <option value="https://warper.wmflabs.org/maps/tile/208/{z}/{x}/{y}.png">Spandau 1913</option>
-            <option value="https://warper.wmflabs.org/maps/tile/202/{z}/{x}/{y}.png">Spandau 1835</option>
-            <option value="https://warper.wmflabs.org/maps/tile/2238/{z}/{x}/{y}.png">Tiergarten 1835</option>
-            <option value="https://warper.wmflabs.org/maps/tile/2210/{z}/{x}/{y}.png">Tiergarten 1793</option>
-        </select>
-        <br>
-        <label for="transparency2">Transparenz der zweiten Karte:</label>
-        <input type="range" id="transparency2" min="0" max="1" step="0.1" value="1">
+        <button id="centerButton">Auf meine Position zentrieren</button>
     </div>
     <div id="map"></div>
     <script>
@@ -68,63 +47,22 @@
         }).setView([52.5200, 13.4050], 13); // Setzen Sie die initiale Ansicht auf das Zentrum von Berlin
         L.control.attribution({ prefix: false }).addTo(map);
 
-        // Hinzufügen der OpenStreetMap Layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Hinzufügen der Berlin 1925 Karte
+        var historicalLayer = L.tileLayer('https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png', {
+            minZoom: 1,
             maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
+            tms: false,
+            attribution: 'Historische Karte © [Ihr Name oder Quelle]'
         }).addTo(map);
 
-        var historicalLayer1, historicalLayer2;
-        var transparencyControl1 = document.getElementById('transparency1');
-        var transparencyControl2 = document.getElementById('transparency2');
-
-        document.getElementById('mapSelect1').addEventListener('change', function() {
-            var selectedValue = this.value;
-            if (historicalLayer1) {
-                map.removeLayer(historicalLayer1);
-            }
-            if (selectedValue) {
-                historicalLayer1 = L.tileLayer(selectedValue, {
-                    minZoom: 12,
-                    maxZoom: 19,
-                    tms: false,
-                    attribution: 'Historische Karte © [Ihr Name oder Quelle]'
-                }).addTo(map);
-                historicalLayer1.setOpacity(transparencyControl1.value);
-            }
-        });
-
-        document.getElementById('mapSelect2').addEventListener('change', function() {
-            var selectedValue = this.value;
-            if (historicalLayer2) {
-                map.removeLayer(historicalLayer2);
-            }
-            if (selectedValue) {
-                historicalLayer2 = L.tileLayer(selectedValue, {
-                    minZoom: 12,
-                    maxZoom: 19,
-                    tms: false,
-                    attribution: 'Historische Karte © [Ihr Name oder Quelle]'
-                }).addTo(map);
-                historicalLayer2.setOpacity(transparencyControl2.value);
-            }
-        });
-
-        transparencyControl1.addEventListener('input', function() {
-            if (historicalLayer1) {
-                historicalLayer1.setOpacity(this.value);
-            }
-        });
-
-        transparencyControl2.addEventListener('input', function() {
-            if (historicalLayer2) {
-                historicalLayer2.setOpacity(this.value);
-            }
+        var transparencyControl = document.getElementById('transparency1');
+        transparencyControl.addEventListener('input', function() {
+            historicalLayer.setOpacity(this.value);
         });
 
         // GPS-Funktionalität
-        var userPanned = false;
         var gpsMarker, gpsCircle;
+        var currentPosition;
 
         function updateGPSPosition(position) {
             var lat = position.coords.latitude;
@@ -132,6 +70,7 @@
             var accuracy = position.coords.accuracy;
 
             console.log("Position gefunden:", lat, lng, "Genauigkeit:", accuracy);
+            currentPosition = [lat, lng];
 
             if (!gpsMarker) {
                 gpsMarker = L.marker([lat, lng]).addTo(map)
@@ -147,10 +86,6 @@
                 gpsCircle.setLatLng([lat, lng]);
                 gpsCircle.setRadius(accuracy);
             }
-
-            if (!userPanned) {
-                map.setView([lat, lng]);
-            }
         }
 
         function handleError(error) {
@@ -158,14 +93,12 @@
             alert('Geolocation Error: ' + error.message);
         }
 
-        map.on('movestart', function() {
-            userPanned = true;
-        });
-
-        map.on('moveend', function() {
-            setTimeout(function() {
-                userPanned = false;
-            }, 5000); // Wartezeit von 5 Sekunden nach der letzten manuellen Verschiebung
+        document.getElementById('centerButton').addEventListener('click', function() {
+            if (currentPosition) {
+                map.setView(currentPosition, 16); // Zentriert die Karte auf die aktuelle Position mit Zoomlevel 16
+            } else {
+                alert("Aktuelle Position nicht verfügbar.");
+            }
         });
 
         if (navigator.geolocation) {
