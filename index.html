@@ -22,14 +22,6 @@
             border-radius: 5px; 
         }
         #transparency1, #transparency2 { width: 100%; }
-        .direction-icon {
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-bottom: 10px solid blue;
-            transform-origin: 50% 50%;
-        }
     </style>
 </head>
 <body>
@@ -37,8 +29,15 @@
         <label for="mapSelect1">Wählen Sie die erste historische Karte:</label>
         <select id="mapSelect1">
             <option value="">--Bitte wählen--</option>
-            <option value="https://warper.wmflabs.org/maps/tile/1123/{z}/{x}/{y}.png">Berlin u. Umg. 1913</option>
-            <!-- Weitere Karten hier einfügen -->
+            <option value="https://warper.wmflabs.org/maps/tile/1220/{z}/{x}/{y}.png">Berlin 1910</option>
+            <option value="https://warper.wmflabs.org/maps/tile/288/{z}/{x}/{y}.png">Berlin 1862</option>
+            <option value="https://warper.wmflabs.org/maps/tile/486/{z}/{x}/{y}.png">Berlin 1778</option>
+            <option value="https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png">Berlin 1925</option>
+            <option value="https://warper.wmflabs.org/maps/tile/206/{z}/{x}/{y}.png">Spandau 1912</option>
+            <option value="https://warper.wmflabs.org/maps/tile/208/{z}/{x}/{y}.png">Spandau 1913</option>
+            <option value="https://warper.wmflabs.org/maps/tile/202/{z}/{x}/{y}.png">Spandau 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2238/{z}/{x}/{y}.png">Tiergarten 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2210/{z}/{x}/{y}.png">Tiergarten 1793</option>
         </select>
         <br>
         <label for="transparency1">Transparenz der ersten Karte:</label>
@@ -47,8 +46,15 @@
         <label for="mapSelect2">Wählen Sie die zweite historische Karte:</label>
         <select id="mapSelect2">
             <option value="">--Bitte wählen--</option>
-            <option value="https://warper.wmflabs.org/maps/tile/1123/{z}/{x}/{y}.png">Berlin u. Umg. 1913</option>
-            <!-- Weitere Karten hier einfügen -->
+            <option value="https://warper.wmflabs.org/maps/tile/1220/{z}/{x}/{y}.png">Berlin 1910</option>
+            <option value="https://warper.wmflabs.org/maps/tile/288/{z}/{x}/{y}.png">Berlin 1862</option>
+            <option value="https://warper.wmflabs.org/maps/tile/486/{z}/{x}/{y}.png">Berlin 1778</option>
+            <option value="https://warper.wmflabs.org/maps/tile/191/{z}/{x}/{y}.png">Berlin 1925</option>
+            <option value="https://warper.wmflabs.org/maps/tile/206/{z}/{x}/{y}.png">Spandau 1912</option>
+            <option value="https://warper.wmflabs.org/maps/tile/208/{z}/{x}/{y}.png">Spandau 1913</option>
+            <option value="https://warper.wmflabs.org/maps/tile/202/{z}/{x}/{y}.png">Spandau 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2238/{z}/{x}/{y}.png">Tiergarten 1835</option>
+            <option value="https://warper.wmflabs.org/maps/tile/2210/{z}/{x}/{y}.png">Tiergarten 1793</option>
         </select>
         <br>
         <label for="transparency2">Transparenz der zweiten Karte:</label>
@@ -64,7 +70,6 @@
 
         // Hinzufügen der OpenStreetMap Layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            minZoom: 1,
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
@@ -80,7 +85,7 @@
             }
             if (selectedValue) {
                 historicalLayer1 = L.tileLayer(selectedValue, {
-                    minZoom: 1,
+                    minZoom: 12,
                     maxZoom: 19,
                     tms: false,
                     attribution: 'Historische Karte © [Ihr Name oder Quelle]'
@@ -96,7 +101,7 @@
             }
             if (selectedValue) {
                 historicalLayer2 = L.tileLayer(selectedValue, {
-                    minZoom: 1,
+                    minZoom: 12,
                     maxZoom: 19,
                     tms: false,
                     attribution: 'Historische Karte © [Ihr Name oder Quelle]'
@@ -118,51 +123,43 @@
         });
 
         // GPS-Funktionalität
-        var locationMarker, locationCircle, directionMarker;
-        var watchID;
+        var userPanned = false;
+        var gpsMarker, gpsCircle;
 
-        function onLocationFound(e) {
-            if (!locationMarker) {
-                locationMarker = L.marker(e.latlng).addTo(map);
-                locationCircle = L.circle(e.latlng, e.accuracy / 2).addTo(map);
-                directionMarker = L.marker(e.latlng, {
-                    icon: L.divIcon({
-                        className: 'direction-icon',
-                        html: '<div class="direction-icon"></div>',
-                        iconSize: [10, 10]
-                    })
-                }).addTo(map);
+        function updateGPSPosition(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            var accuracy = position.coords.accuracy;
+
+            if (!gpsMarker) {
+                gpsMarker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup("You are within " + accuracy + " meters from this point").openPopup();
             } else {
-                locationMarker.setLatLng(e.latlng);
-                locationCircle.setLatLng(e.latlng).setRadius(e.accuracy / 2);
-                directionMarker.setLatLng(e.latlng);
+                gpsMarker.setLatLng([lat, lng]);
+                gpsMarker.getPopup().setContent("You are within " + accuracy + " meters from this point");
+            }
+
+            if (!gpsCircle) {
+                gpsCircle = L.circle([lat, lng], { radius: accuracy }).addTo(map);
+            } else {
+                gpsCircle.setLatLng([lat, lng]);
+                gpsCircle.setRadius(accuracy);
+            }
+
+            if (!userPanned) {
+                map.setView([lat, lng]);
             }
         }
 
-        function onLocationError(e) {
-            alert(e.message);
+        function handleError(error) {
+            console.error('Geolocation Error:', error);
         }
 
-        function updateDirection(heading) {
-            if (directionMarker) {
-                var icon = directionMarker.getElement().querySelector('.direction-icon');
-                icon.style.transform = 'rotate(' + heading + 'deg)';
-            }
-        }
+        map.on('movestart', function() {
+            userPanned = true;
+        });
 
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', function(event) {
-                if (event.alpha !== null) {
-                    var heading = 360 - event.alpha; // Kompassrichtung
-                    updateDirection(heading);
-                }
-            }, true);
-        }
-
-        map.on('locationfound', onLocationFound);
-        map.on('locationerror', onLocationError);
-
-        map.locate({watch: true, setView: false, maxZoom: 19});
-    </script>
-</body>
-</html>
+        map.on('moveend', function() {
+            setTimeout(function() {
+                userPanned = false;
+            }, 5000); // Wartezeit von 5 Sekunden nach der letzten manuellen Verschieb
