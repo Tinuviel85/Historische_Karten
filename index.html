@@ -131,6 +131,8 @@
             var lng = position.coords.longitude;
             var accuracy = position.coords.accuracy;
 
+            console.log("Position gefunden:", lat, lng, "Genauigkeit:", accuracy);
+
             if (!gpsMarker) {
                 gpsMarker = L.marker([lat, lng]).addTo(map)
                     .bindPopup("You are within " + accuracy + " meters from this point").openPopup();
@@ -153,6 +155,7 @@
 
         function handleError(error) {
             console.error('Geolocation Error:', error);
+            alert('Geolocation Error: ' + error.message);
         }
 
         map.on('movestart', function() {
@@ -173,6 +176,7 @@
             });
         } else {
             console.log("Geolocation is not supported by this browser.");
+            alert("Geolocation is not supported by this browser.");
         }
     </script>
 </body>
