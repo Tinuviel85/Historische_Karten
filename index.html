@@ -5,9 +5,9 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf" crossorigin=""/>
+          integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-    integrity="sha384-okbbMvvx/qfQkmiQKfd5VifbKZ/W8p1qIsWvE1ROPUfHWsDcC8/BnHohF7vPg2T6" crossorigin=""></script>
+            integrity="sha384-okbbMvvx/qfQkmiQKfd5VifbKZ/W8p1qIsWvE1ROPUfHWsDcC8/BnHohF7vPg2T6" crossorigin=""></script>
     <style type="text/css">
         body { margin: 0; padding: 0; }
         html, body, #map { width: 100%; height: 100%; }
@@ -20,16 +20,15 @@
             background: white; 
             padding: 10px; 
             border-radius: 5px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        #transparency1, #transparency2 { width: 100%; }
-        #gpsButton {
-            margin-top: 10px;
-        }
+        #transparency1 { width: 100%; }
+        #gpsButton { margin-top: 10px; display: block; width: 100%; }
     </style>
 </head>
 <body>
     <div id="menu">
-        <label for="mapSelect1">Wählen Sie die erste historische Karte:</label>
+        <label for="mapSelect1"><strong>Wählen Sie die historische Karte:</strong></label>
         <select id="mapSelect1">
             <option value="">--Bitte wählen--</option>
             <option value="https://tinuviel85.github.io/maptiles/{z}/{x}/{y}.png">test</option>
@@ -75,10 +74,10 @@
             <option value="https://www.mapwarper.net/maps/tile/74989/{z}/{x}/{y}.png">Preussen</option>
             <option value="https://mapwarper.net/maps/tile/77491/{z}/{x}/{y}.png">Messegelände Berlin</option>
         </select>
-        <br>
-        <label for="transparency1">Transparenz der ersten Karte:</label>
+        <br><br>
+        <label for="transparency1"><strong>Transparenz der Karte:</strong></label>
         <input type="range" id="transparency1" min="0" max="1" step="0.1" value="1">
-        <br>
+        <br><br>
         <button id="gpsButton">Zentriere auf GPS-Position</button>
     </div>
     <div id="map"></div>
@@ -86,66 +85,46 @@
         // Initialisierung der Karte
         var map = L.map('map', {
             attributionControl: false,
-            zoomControl: false // Standard-Zoom-Steuerelemente deaktivieren
-        }).setView([52.5200, 13.4050], 13); // Setzen Sie die initiale Ansicht auf das Zentrum von Berlin
+            zoomControl: false
+        }).setView([52.5200, 13.4050], 13);
 
-        // Hinzufügen der OpenStreetMap Layer
+        // OpenStreetMap Layer hinzufügen
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             minZoom: 1,
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Zoom-In und Zoom-Out Steuerelemente hinzufügen
-        L.control.zoom({
-            position: 'topright'
-        }).addTo(map);
+        // Zoom-Steuerelement oben rechts
+        L.control.zoom({ position: 'topright' }).addTo(map);
 
-        var historicalLayer1, historicalLayer2;
+        var historicalLayer1;
         var transparencyControl1 = document.getElementById('transparency1');
-        var transparencyControl2 = document.getElementById('transparency2');
 
+        // Event: Auswahl historische Karte
         document.getElementById('mapSelect1').addEventListener('change', function() {
-            var selectedValue = this.value;
+            var url = this.value;
+            // vorhandene Ebene entfernen
             if (historicalLayer1) {
                 map.removeLayer(historicalLayer1);
             }
-            if (selectedValue) {
-                historicalLayer1 = L.tileLayer(selectedValue, {
+            // neue Ebene hinzufügen
+            if (url) {
+                historicalLayer1 = L.tileLayer(url, {
                     minZoom: 1,
                     maxZoom: 19,
                     tms: false,
-                    attribution: 'Historische Karte © [Ihr Name oder Quelle]'
+                    attribution: 'Historische Karte © [Quelle]'
                 }).addTo(map);
+                // Transparenz setzen
                 historicalLayer1.setOpacity(transparencyControl1.value);
             }
         });
 
-        document.getElementById('mapSelect2').addEventListener('change', function() {
-            var selectedValue = this.value;
-            if (historicalLayer2) {
-                map.removeLayer(historicalLayer2);
-            }
-            if (selectedValue) {
-                historicalLayer2 = L.tileLayer(selectedValue, {
-                    minZoom: 1,
-                    maxZoom: 19,
-                    tms: false,
-                    attribution: 'Historische Karte © [Ihr Name oder Quelle]'
-                }).addTo(map);
-                historicalLayer2.setOpacity(transparencyControl2.value);
-            }
-        });
-
+        // Event: Transparenz ändern
         transparencyControl1.addEventListener('input', function() {
             if (historicalLayer1) {
                 historicalLayer1.setOpacity(this.value);
-            }
-        });
-
-        transparencyControl2.addEventListener('input', function() {
-            if (historicalLayer2) {
-                historicalLayer2.setOpacity(this.value);
             }
         });
 
@@ -157,14 +136,12 @@
             var lng = position.coords.longitude;
             var accuracy = position.coords.accuracy;
 
-            console.log("Position gefunden:", lat, lng, "Genauigkeit:", accuracy);
-
             if (!gpsMarker) {
                 gpsMarker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup("You are within " + accuracy + " meters from this point").openPopup();
+                    .bindPopup("Standort mit etwa " + accuracy + " m Genauigkeit").openPopup();
             } else {
                 gpsMarker.setLatLng([lat, lng]);
-                gpsMarker.getPopup().setContent("You are within " + accuracy + " meters from this point");
+                gpsMarker.getPopup().setContent("Standort mit etwa " + accuracy + " m Genauigkeit");
             }
 
             if (!gpsCircle) {
@@ -177,17 +154,19 @@
 
         function handleError(error) {
             console.error('Geolocation Error:', error);
-            alert('Geolocation Error: ' + error.message);
+            alert('Geolocation-Fehler: ' + error.message);
         }
 
+        // Button: Karte auf GPS-Position zentrieren
         document.getElementById('gpsButton').addEventListener('click', function() {
             if (gpsMarker) {
                 map.setView(gpsMarker.getLatLng(), 16);
             } else {
-                alert("GPS-Position nicht verfügbar");
+                alert("GPS-Position noch nicht bestimmt.");
             }
         });
 
+        // Geolocation aktivieren (nur in HTTPS)
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(updateGPSPosition, handleError, {
                 enableHighAccuracy: true,
@@ -195,9 +174,9 @@
                 timeout: 5000
             });
         } else {
-            console.log("Geolocation is not supported by this browser.");
-            alert("Geolocation is not supported by this browser.");
+            alert("Geolocation wird von diesem Browser nicht unterstützt.");
         }
     </script>
 </body>
 </html>
+
