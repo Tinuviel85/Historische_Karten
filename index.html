@@ -19,13 +19,13 @@
     }
     *{box-sizing:border-box}
     [hidden]{display:none!important}
-    html,body{height:100%;margin:0;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+    html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
     button,input,select{font:inherit}
     button{cursor:pointer}
     button:disabled{opacity:.4;cursor:not-allowed}
     button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #6e9d89;outline-offset:2px}
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .app{height:100%;height:100dvh;display:flex;background:#e6e9df}
+    .app{position:fixed;inset:0;height:100%;height:100dvh;display:flex;background:#e6e9df;overflow:hidden}
     .sidebar{width:378px;flex:0 0 378px;display:flex;flex-direction:column;min-height:0;background:var(--paper);z-index:1050;border-right:1px solid #e2e8df;box-shadow:3px 0 25px rgba(14,37,30,.045)}
     .sidebar-top{padding:22px 22px 15px;border-bottom:1px solid var(--line);flex:none}
     .brand{display:flex;align-items:center;gap:12px}
@@ -67,15 +67,20 @@
     .btn:hover{background:#f3f8f3}
     .btn-primary{background:var(--forest);border-color:var(--forest);color:#fff}
     .btn-primary:hover{background:#28584b}
-    .stage{position:relative;flex:1;min-width:0;min-height:0}
-    #map{position:absolute;inset:0;background:#e4e8de}
+    .stage{position:relative;flex:1;min-width:0;min-height:0;overflow:hidden;isolation:isolate}
+    #map{position:absolute;inset:0;background:#e4e8de;z-index:1}
+    #historicalMap{position:absolute;inset:0;z-index:2;pointer-events:none;background:transparent!important;clip-path:inset(0 0 0 0)}
+    #historicalMap.leaflet-container{background:transparent!important}
+    #historicalMap *{pointer-events:none!important}
     .leaflet-container{font:inherit}
-    .leaflet-historical-pane{width:100%;height:100%}
-    .leaflet-top.leaflet-right{top:129px;right:9px}
-    .leaflet-control-zoom{border:0!important;box-shadow:0 4px 18px #263c3530!important;overflow:hidden;border-radius:11px}
-    .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;color:#284c3e!important}
-    .leaflet-control-attribution{font-size:10px!important;background:#fffffff0!important;padding:3px 8px!important;margin-bottom:105px!important}
-    .stage.is-comparing .leaflet-control-attribution{margin-bottom:151px!important}
+    /* Alle Bedienelemente befinden sich über den beiden Karten. */
+    .map-attribution{position:absolute;left:0;right:0;bottom:0;z-index:720;background:#fffffff0;padding:5px 9px;font-size:10px;line-height:1.3;color:#405249;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;min-height:24px}
+    .map-attribution a{color:#246a87;text-decoration:none}
+    .map-attribution a:hover{text-decoration:underline}
+    .zoom-panel{position:absolute;z-index:730;right:13px;top:164px;display:flex;flex-direction:column;background:white;box-shadow:0 4px 18px #263c3530;border-radius:12px;overflow:hidden}
+    .zoom-panel button{width:40px;height:43px;border:0;background:white;color:#284c3e;font-size:25px;line-height:1}
+    .zoom-panel button+button{border-top:1px solid #e5e9e3}
+    .zoom-panel button:active{background:#eaf3eb}
     .map-topbar{position:absolute;z-index:700;top:17px;left:17px;right:17px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;pointer-events:none}
     .map-title{background:#fff;box-shadow:0 5px 23px #1837291b;display:flex;align-items:center;gap:10px;border-radius:12px;padding:10px 14px;max-width:min(455px,calc(100% - 85px));pointer-events:auto}
     .yearbox{border-radius:8px;background:#eef4ec;color:var(--forest);padding:7px 9px;font:700 13px Georgia,serif;flex:none}
@@ -89,7 +94,7 @@
     .mode-panel{position:absolute;top:80px;left:17px;z-index:690;display:flex;gap:0;border:1px solid #e5eae5;background:#fff;border-radius:12px;padding:4px;box-shadow:0 6px 22px #18372918}
     .mode-btn{border:0;background:transparent;padding:9px 14px;border-radius:9px;color:#738377;font-weight:700;font-size:12px;white-space:nowrap}
     .mode-btn[aria-pressed="true"]{background:#234e42;color:white}
-    .map-bottom{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:700;pointer-events:none;width:min(650px,calc(100% - 42px));display:flex;flex-direction:column;align-items:center;gap:10px}
+    .map-bottom{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);z-index:700;pointer-events:none;width:min(650px,calc(100% - 42px));display:flex;flex-direction:column;align-items:center;gap:10px}
     .timeline{width:100%;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:15px;background:#fff;box-shadow:0 10px 35px #173a2c2a;pointer-events:auto}
     .timeline button{width:34px;height:34px;flex:none;border:1px solid #e1e8e0;border-radius:10px;background:#f9faf8;font-size:20px;line-height:1;color:var(--forest)}
     .timeline-center{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px;text-align:center}
@@ -113,8 +118,10 @@
     .address-result{width:100%;text-align:left;border:0;border-bottom:1px solid #eff2ee;background:#fff;padding:10px 4px;font-size:12px;color:#334a3d}
     .address-result:hover{background:#eff6ef}
     .mini-note{display:block;margin-top:8px;color:#89948b;font-size:10px;line-height:1.5}
-    .detail-card{position:absolute;z-index:650;left:17px;bottom:106px;width:min(310px,calc(100% - 35px));border:1px solid #e4e9e1;border-radius:14px;background:#fff;box-shadow:0 8px 27px #15352620;padding:12px;display:none}
+    .detail-card{position:absolute;z-index:740;left:17px;bottom:128px;width:min(350px,calc(100% - 35px));max-height:min(42dvh,360px);overflow-y:auto;border:1px solid #e4e9e1;border-radius:14px;background:#fff;box-shadow:0 8px 27px #15352620;padding:12px;display:none}
     .detail-card.open{display:block}
+    .stage.is-comparing .detail-card{bottom:179px}
+    .detail-close{flex:none;border:0;border-radius:8px;background:#eef3ed;width:29px;height:29px;color:#284b3f;font-size:20px;line-height:1}
     .detail-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
     .detail-head strong{font-size:12px}
     .small-link{color:#316e53;font-weight:700;font-size:11px;text-decoration:none}
@@ -126,13 +133,21 @@
     .detail-desc b{color:#30483c}
     .check-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650;color:#486453;margin-top:10px}
     .check-row input{accent-color:#1d5b48}
-    .toast{position:absolute;z-index:1600;left:50%;top:20px;transform:translate(-50%,-15px);background:#224a3e;color:white;font-size:12px;border-radius:11px;padding:12px 17px;box-shadow:var(--shadow);max-width:min(490px,calc(100% - 25px));line-height:1.45;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;text-align:center}
+    .toast{position:absolute;z-index:1600;left:50%;top:auto;bottom:195px;transform:translate(-50%,12px);background:#224a3e;color:white;font-size:12px;border-radius:11px;padding:12px 17px;box-shadow:var(--shadow);max-width:min(490px,calc(100% - 25px));line-height:1.45;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;text-align:center}
     .toast.show{opacity:1;transform:translate(-50%,0)}
+    .toast-dismiss{border:0;background:transparent;color:#fff;margin-left:9px;padding:2px 4px;font-weight:800;pointer-events:auto}
     .gps-map-button{position:absolute;z-index:760;right:17px;top:78px;border:1px solid #dce6dd;border-radius:11px;background:white;color:#214c3f;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:750;font-size:12px;box-shadow:0 4px 18px #18372928;min-height:40px}
     .gps-map-button:hover{background:#eef7f1}
     .gps-map-button:disabled{opacity:.75;cursor:progress}
     .gps-map-button svg{width:18px;height:18px;flex:none}
-    .historical-warning{width:100%;background:#fffdf7;border:1px solid #e5d5ac;color:#634d24;border-radius:11px;box-shadow:0 3px 12px #0002;padding:9px 12px;line-height:1.4;font-size:12px;text-align:center;pointer-events:auto}
+    .gps-indicator{position:absolute;z-index:745;left:50%;top:50%;width:24px;height:24px;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 4px #153e5140)}
+    .gps-beam{display:none;position:absolute;left:50%;top:50%;width:180px;height:180px;margin-left:-90px;margin-top:-90px;transform:rotate(var(--heading,0deg));transform-origin:center}
+    .gps-indicator.has-heading .gps-beam{display:block}
+    .gps-dot{position:absolute;left:50%;top:50%;width:19px;height:19px;transform:translate(-50%,-50%);border-radius:50%;background:#2175c2;border:4px solid #fff;box-shadow:0 0 0 2px #2175c299}
+    .gps-indicator.has-heading .gps-dot{width:15px;height:15px;border-width:2px}
+    .gps-indicator.has-heading .gps-arrow{display:block}
+    .gps-arrow{display:none;position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-32px) rotate(var(--heading,0deg));border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:19px solid #1673c8;filter:drop-shadow(0 0 1px #fff)}
+
     .mobile-open{display:none}
     .about-modal{border:1px solid #dfebe0;border-radius:18px;box-shadow:0 22px 70px #1a322b4a;padding:25px;width:min(520px,calc(100% - 30px));max-height:85vh;overflow-y:auto;color:#293f34}
     .about-modal::backdrop{background:#1029219a}
@@ -158,10 +173,12 @@
       .map-topbar{left:14px;top:65px;right:14px}.map-title{max-width:calc(100% - 94px);padding:8px 10px}.map-title-name strong{font-size:12px}.yearbox{font-size:11px}
       .top-actions{gap:6px}.icon-btn{height:36px;width:36px}
       .mode-panel{top:119px;left:14px;padding:3px}.mode-btn{padding:8px 12px;font-size:11px}
-      .leaflet-top.leaflet-right{top:170px;right:6px}
-      .map-bottom{bottom:calc(19px + env(safe-area-inset-bottom));width:calc(100% - 26px)}
+      .zoom-panel{top:168px;right:13px}
+      .map-bottom{bottom:calc(38px + env(safe-area-inset-bottom));width:calc(100% - 26px)}
       .timeline{padding:9px 11px}.compare-label{top:166px}
-      .detail-card{left:12px;bottom:115px}
+      .detail-card{left:12px;bottom:calc(111px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-height:35dvh}
+      .stage.is-comparing .detail-card{bottom:calc(159px + env(safe-area-inset-bottom))}
+      .toast{bottom:calc(195px + env(safe-area-inset-bottom))}
       .address-popup{top:109px;right:12px}
     }
     @media(max-height:540px){.detail-card{bottom:92px}.map-bottom{bottom:9px}.map-topbar{top:9px}}
@@ -250,6 +267,13 @@
     </aside>
     <main class="stage" aria-label="Interaktive historische Karte">
       <div id="map"></div>
+      <div id="historicalMap" aria-hidden="true"></div>
+      <div id="gpsIndicator" class="gps-indicator" hidden aria-hidden="true">
+        <div id="gpsBeam" class="gps-beam"><svg viewBox="0 0 180 180" width="180" height="180" aria-hidden="true"><defs><linearGradient id="beamFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2388db" stop-opacity=".07"/><stop offset="1" stop-color="#2388db" stop-opacity=".35"/></linearGradient></defs><path d="M90 90 L44 9 Q90 -12 136 9 Z" fill="url(#beamFade)" stroke="#2388db" stroke-opacity=".25"/></svg></div>
+        <div class="gps-arrow"></div><div class="gps-dot"></div>
+      </div>
+      <div class="zoom-panel" aria-label="Karte zoomen"><button id="zoomIn" type="button" aria-label="Vergrößern">+</button><button id="zoomOut" type="button" aria-label="Verkleinern">−</button></div>
+      <div class="map-attribution"><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a> · <a id="sourceAttributionLink" href="#" target="_blank" rel="noopener noreferrer">Historische Kartenquelle</a></div>
       <button id="openSidebar" class="mobile-open" type="button">☰ Karten auswählen</button>
       <button id="locateMapButton" class="gps-map-button" type="button" title="Auf meinen aktuellen Standort zoomen" aria-label="Auf meinen aktuellen Standort zoomen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -281,7 +305,7 @@
         <small class="mini-note">Ortssuche über OpenStreetMap / Nominatim. Suchbegriffe werden für die Suche an diesen Dienst übertragen.</small>
       </div>
       <div id="detailCard" class="detail-card" aria-label="Informationen zur historischen Karte">
-        <div class="detail-head"><strong>Karteninformationen</strong><a id="detailLink" class="small-link" href="#" target="_blank" rel="noopener noreferrer">Quelle öffnen ↗</a></div>
+        <div class="detail-head"><strong>Karteninformationen</strong><a id="detailLink" class="small-link" href="#" target="_blank" rel="noopener noreferrer">Quelle öffnen ↗</a><button id="closeDetail" class="detail-close" type="button" aria-label="Karteninformationen schließen">×</button></div>
         <div class="detail-content">
           <img id="mapPreview" class="preview" alt="Kachelvorschau der ausgewählten historischen Karte" hidden>
           <div id="previewFallback" class="preview-fallback">Keine Vorschau verfügbar</div>
@@ -289,16 +313,14 @@
         </div>
       </div>
       <div class="map-bottom">
-        <div id="historicalWarning" class="historical-warning" role="status" hidden></div>
         <div id="compareRangeBox" class="compare-range-box"><span>Damals</span><input id="compareRange" type="range" min="0" max="100" value="50" step="1" aria-label="Position des Kartenvergleichs"><span>Heute</span></div>
-        <div id="viewNotice" class="view-notice" hidden></div>
         <div class="timeline" aria-label="Zeitleiste der Region">
           <button id="prevYear" type="button" title="Ältere Karte" aria-label="Ältere Karte">‹</button>
           <div class="timeline-center"><strong id="timelineYear">Historische Karte</strong><small id="timelineText">Weitere Karten derselben Region entdecken</small></div>
           <button id="nextYear" type="button" title="Neuere Karte" aria-label="Neuere Karte">›</button>
         </div>
       </div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="toast" class="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastDismiss" class="toast-dismiss" type="button" aria-label="Hinweis schließen">×</button></div>
     </main>
   </div>
   <dialog id="aboutDialog" class="about-modal">
@@ -307,7 +329,7 @@
     <p><b>Hinweis für iPhone/iPad:</b> Beim direkten Öffnen aus Dateien in Edge (edge://external-file) kann der Browser externe Skripte blockieren. Für den zuverlässigen Betrieb die index.html über HTTPS, beispielsweise GitHub Pages, aufrufen. Kartenkacheln benötigen weiterhin Internet.</p>
     <p><b>Bedienung:</b> Eine Karte aus der Bibliothek auswählen, ihre Deckkraft einstellen oder unter „Vergleichen“ die Trennlinie verschieben. Die Zeitleiste wechselt zwischen datierten Karten derselben Region. Über die Suche lassen sich heutige Adressen ansteuern.</p>
     <p>Die automatische Positionierung nutzt <b>ungefähre Regionsmittelpunkte</b>, keine geprüften Kartengrenzen. Einige alte externe Kachelserver können nicht mehr erreichbar sein; die Quelladressen wurden bewusst unverändert übernommen. Bei historischen Karten können unkartierte Flächen transparent bleiben.</p>
-    <p>Favoriten werden ausschließlich lokal in diesem Browser gespeichert. Der Standort wird erst auf Knopfdruck angefragt. Ein geteilter Link kann den gerade sichtbaren Kartenausschnitt und damit auch eine Standortposition enthalten.</p>
+    <p>Favoriten werden ausschließlich lokal in diesem Browser gespeichert. Der Standort und optional die Kompassrichtung werden erst auf Knopfdruck angefragt. Die Kompassanzeige kann auf iOS eine zusätzliche Sensorfreigabe benötigen. Ein geteilter Link kann den gerade sichtbaren Kartenausschnitt und damit auch eine Standortposition enthalten.</p>
     <p>Grundkarte: © OpenStreetMap-Mitwirkende. Historische Karten: jeweilige Anbieter und Originalquellen; Lizenzen und Urheberrechte sind dort einzusehen.</p>
     <button id="closeDialog" class="btn btn-primary" type="button">Schließen</button>
   </dialog>
@@ -404,22 +426,34 @@
       let favorites=new Set(savedFavorites.filter(Number.isInteger));
       let regionFilter='Alle';
       let active=null, layer=null, mode='overlay', opacity=.78, split=.5;
-      let gpsMarker=null, gpsAccuracy=null, gpsWatchId=null, gpsKnownPosition=null;
-      let detailOpen=false, failedTiles=0, successfulTiles=0, checkLayerTimer=null, toastTimer=null, searchAbort=null;
-      const map=L.map('map', {zoomControl:false,preferCanvas:true,minZoom:2,maxZoom:19,worldCopyJump:true}).setView([52.52,13.405],12);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom:19, maxNativeZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap-Mitwirkende</a>'
-      }).addTo(map);
-      L.control.zoom({position:'topright'}).addTo(map);
-      map.createPane('historicalPane');
-      const historicalPane=map.getPane('historicalPane');
-      historicalPane.style.zIndex='450';
-      historicalPane.style.pointerEvents='none';
-      const setNotice=(message, duration=5000) => {
-        clearTimeout(toastTimer);
-        $('toast').textContent=message;
+      let gpsAccuracy=null, gpsWatchId=null, gpsKnownPosition=null, compassHeading=null, compassListening=false;
+      let detailOpen=false, toastTimer=null, searchAbort=null;
+      const map=L.map('map',{zoomControl:false,attributionControl:false,preferCanvas:true,minZoom:2,maxZoom:19,worldCopyJump:true,zoomAnimation:false}).setView([52.52,13.405],12);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,maxNativeZoom:19}).addTo(map);
+      // Eigenständige, nicht interaktive historische Karte; der sichtbare
+      // Vergleichsausschnitt wird am festen DIV beschnitten, nicht an einem
+      // Leaflet-Pane, der beim Verschieben transformiert wird.
+      const historicalMap=L.map('historicalMap',{
+        zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,
+        doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,
+        zoomAnimation:false,minZoom:2,maxZoom:19,worldCopyJump:true
+      }).setView(map.getCenter(),map.getZoom());
+      const syncHistorical=()=>{
+        const center=map.getCenter(),zoom=map.getZoom();
+        const other=historicalMap.getCenter();
+        if(historicalMap.getZoom()!==zoom || Math.abs(other.lat-center.lat)>1e-8 || Math.abs(other.lng-center.lng)>1e-8)
+          historicalMap.setView(center,zoom,{animate:false});
+      };
+      map.on('move zoomend',syncHistorical);
+      $('zoomIn').addEventListener('click',()=>map.zoomIn());
+      $('zoomOut').addEventListener('click',()=>map.zoomOut());
+      const dismissNotice=()=>{$('toast').classList.remove('show');clearTimeout(toastTimer);};
+      $('toastDismiss').addEventListener('click',dismissNotice);
+      const setNotice=(message,duration=3200)=>{
+        dismissNotice();
+        $('toastText').textContent=message;
         $('toast').classList.add('show');
-        if(duration>0)toastTimer=setTimeout(()=>$('toast').classList.remove('show'),duration);
+        if(duration>0)toastTimer=setTimeout(dismissNotice,Math.min(duration,4200));
       };
       const closeMobile=() => $('sidebar').classList.remove('open');
       $('openSidebar').addEventListener('click',()=>$('sidebar').classList.add('open'));
@@ -471,19 +505,10 @@
       $('mapSearch').addEventListener('input',renderList);
       function applyPane(){
         if(!layer)return;
-        // WebKit (iPhone/Edge/Safari): eine Alpha-Maske am Karten-Pane
-        // vermeidet Fehler mit clip-path auf den transformierten Leaflet-Kacheln.
-        if(mode==='compare'){
-          const cut=`${(split*100).toFixed(2)}%`;
-          const mask=`linear-gradient(to right, #000 0%, #000 ${cut}, transparent ${cut}, transparent 100%)`;
-          historicalPane.style.webkitMaskImage=mask;
-          historicalPane.style.maskImage=mask;
-          layer.setOpacity(1);
-        }else{
-          historicalPane.style.webkitMaskImage='none';
-          historicalPane.style.maskImage='none';
-          layer.setOpacity(opacity);
-        }
+        const cut=(100-split*100).toFixed(2);
+        // An der nicht transformierten Kartenfläche clippen: iOS Safari/Edge stabil.
+        $('historicalMap').style.clipPath=mode==='compare'?`inset(0 ${cut}% 0 0)`:'inset(0 0 0 0)';
+        layer.setOpacity(mode==='compare'?1:opacity);
       }
       function setSplit(value){
         split=Math.max(0,Math.min(1,Number(value)));
@@ -497,7 +522,9 @@
         stage.classList.toggle('is-comparing',mode==='compare');
         $('compareMode').setAttribute('aria-pressed',String(mode==='compare'));
         $('overlayMode').setAttribute('aria-pressed',String(mode==='overlay'));
-        for(const id of ['compareLine','compareHandle','oldLabel','newLabel'])$(id).style.display=mode==='compare'?'block':'none';
+        for(const id of ['compareLine','compareHandle'])$(id).style.display=mode==='compare'?'block':'none';
+        $('oldLabel').style.display='none';$('newLabel').style.display='none';
+        dismissNotice();
         $('compareRangeBox').style.display=mode==='compare'?'flex':'none';
         $('opacityRange').disabled=mode==='compare';
         $('opacityValue').textContent=mode==='compare'?'Im Vergleich: 100 %':`${Math.round(opacity*100)} %`;
@@ -568,63 +595,77 @@
         $('prevYear').onclick=()=>{if(pos>0)selectMap(timeline[pos-1].id);};
         $('nextYear').onclick=()=>{if(pos>=0&&pos<timeline.length-1)selectMap(timeline[pos+1].id);};
       }
-      function historicalTilesUnavailable(message){
-        const warning=$('historicalWarning');
-        warning.textContent=message;
-        warning.hidden=false;
-      }
       function selectMap(id,{restoreView=false}={}){
         const m=maps[id];if(!m)return;
         const previous=active;
-        if(layer){layer.off();map.removeLayer(layer);layer=null;}
-        clearTimeout(checkLayerTimer);failedTiles=0;successfulTiles=0;
-        $('historicalWarning').hidden=true;
+        dismissNotice();
+        if(layer){historicalMap.removeLayer(layer);layer=null;}
         active=m;
         focusMap(m,previous,restoreView);
+        syncHistorical();
         layer=L.tileLayer(m.sourceUrl,{
-          pane:'historicalPane',minZoom:1,maxZoom:19,tms:false,
-          attribution:sourceAttribution(m),errorTileUrl:'',crossOrigin:false,
-          keepBuffer:3,updateWhenIdle:true
-        });
-        layer.on('tileerror',()=>{failedTiles++;});
-        layer.on('tileload',()=>{successfulTiles++;$('historicalWarning').hidden=true;});
-        layer.on('load',()=>{
-          if(failedTiles>0&&successfulTiles===0)
-            historicalTilesUnavailable('Für diesen Ausschnitt wurden keine historischen Kacheln geladen. Der Vergleich zeigt daher zweimal die aktuelle Grundkarte. Bitte eine andere historische Karte wählen oder die Quelle prüfen.');
-        });
-        layer.addTo(map);
+          minZoom:2,maxZoom:19,tms:false,
+          attribution:'',keepBuffer:3,updateWhenIdle:true
+        }).addTo(historicalMap);
         applyPane();
+        $('sourceAttributionLink').href=m.detailUrl;
+        $('sourceAttributionLink').textContent=m.provider.replace(' (alte Adresse)','');
         $('titleMap').textContent=m.displayName;
         $('titleRegion').textContent=`${m.region} · ${m.provider}`;
         $('titleYear').textContent=m.year?String(m.year):m.name.toLowerCase().includes('antik')?'Antike':'Karte';
         renderList();updateTimeline();showDetail();
-        checkLayerTimer=setTimeout(()=>{
-          if(active===m&&successfulTiles===0)
-            historicalTilesUnavailable('Die historische Karte „'+m.displayName+'“ ist hier nicht sichtbar. Möglicherweise ist der Kartendienst nicht erreichbar oder dieser Ausschnitt nicht abgedeckt. Die ursprüngliche Karten-URL bleibt erhalten.');
-        },5500);
       }
+      $('closeDetail').addEventListener('click',()=>{
+        detailOpen=false;$('detailCard').classList.remove('open');
+      });
       $('infoButton').addEventListener('click',()=>{detailOpen=!detailOpen;$('detailCard').classList.toggle('open',detailOpen);});
       $('detailCard').addEventListener('click',e=>e.stopPropagation());
-      function updateLocation(position, center){
-        const {latitude:lat,longitude:lng,accuracy}=position.coords;
+      function renderGpsIndicator(){
+        if(!gpsKnownPosition)return;
+        const p=map.latLngToContainerPoint(gpsKnownPosition);
+        const indicator=$('gpsIndicator');
+        indicator.hidden=false;
+        indicator.style.left=`${p.x}px`;indicator.style.top=`${p.y}px`;
+        indicator.classList.toggle('has-heading',Number.isFinite(compassHeading));
+        if(Number.isFinite(compassHeading))indicator.style.setProperty('--heading',`${compassHeading}deg`);
+      }
+      map.on('move zoomend resize',renderGpsIndicator);
+      function orientationReceived(event){
+        let heading=Number(event.webkitCompassHeading);
+        if(!Number.isFinite(heading) && event.absolute && Number.isFinite(event.alpha))
+          heading=(360-event.alpha)%360;
+        if(!Number.isFinite(heading))return;
+        compassHeading=(heading+360)%360;
+        renderGpsIndicator();
+      }
+      function enableCompass(){
+        if(compassListening||typeof DeviceOrientationEvent==='undefined')return;
+        const start=()=>{
+          if(compassListening)return;
+          compassListening=true;
+          window.addEventListener('deviceorientation',orientationReceived,true);
+          window.addEventListener('deviceorientationabsolute',orientationReceived,true);
+        };
+        // Das iPhone verlangt den Berechtigungsdialog unmittelbar nach dem Klick.
+        if(typeof DeviceOrientationEvent.requestPermission==='function'){
+          try{DeviceOrientationEvent.requestPermission().then(value=>{if(value==='granted')start();}).catch(()=>{});}
+          catch(_){}
+        }else start();
+      }
+      function updateLocation(position,center){
+        const {latitude:lat,longitude:lng,accuracy,heading}=position.coords;
         gpsKnownPosition=L.latLng(lat,lng);
-        if(!gpsMarker){
-          gpsMarker=L.circleMarker(gpsKnownPosition,{radius:8,weight:3,color:'#fff',fillColor:'#256bb1',fillOpacity:1}).addTo(map).bindPopup('Aktuelle Position');
-          gpsAccuracy=L.circle(gpsKnownPosition,{radius:Math.max(accuracy,1),weight:1,color:'#2576a9',fillColor:'#4da9d1',fillOpacity:.09}).addTo(map);
-        } else{gpsMarker.setLatLng(gpsKnownPosition);gpsAccuracy.setLatLng(gpsKnownPosition).setRadius(Math.max(accuracy,1));}
-        gpsMarker.bindPopup(`Position · Genauigkeit ca. ${Math.round(accuracy)} m`);
+        if(!gpsAccuracy)gpsAccuracy=L.circle(gpsKnownPosition,{radius:Math.max(accuracy,1),weight:1,color:'#2576a9',fillColor:'#4da9d1',fillOpacity:.08}).addTo(map);
+        else gpsAccuracy.setLatLng(gpsKnownPosition).setRadius(Math.max(accuracy,1));
+        // Richtung beim Gehen nur als Ersatz: nicht mit der Blickrichtung verwechseln.
+        if(!Number.isFinite(compassHeading)&&Number.isFinite(heading)&&heading>=0)
+          compassHeading=heading;
         if(center){
-          // Details bis auf Gebäudeebene; eine geringere GPS-Genauigkeit
-          // wird ausdrücklich angezeigt, nicht als exakte Position ausgegeben.
           const targetZoom=accuracy<=100?18:accuracy<=500?16:14;
-          map.setView(gpsKnownPosition,targetZoom,{animate:true});
-          const regionalCenter=regionDefinitions[active?.region]?.center;
-          if(regionalCenter && active?.region!=='Europa' && active?.region!=='Preußen'
-             && distanceKm([lat,lng],regionalCenter) > 80){
-            setNotice('Standort gefunden. Die ausgewählte historische Karte „'+active.displayName+'“ gehört zu einer anderen Region. Bitte eine Karte für deinen Standort auswählen.',9500);
-          }
+          map.setView(gpsKnownPosition,targetZoom,{animate:false});
         }
-        $('locationStatus').textContent=`Standort ermittelt · Genauigkeit etwa ± ${Math.round(accuracy)} m`;
+        renderGpsIndicator();
+        $('locationStatus').textContent=`Standort ermittelt · Genauigkeit ca. ±${Math.round(accuracy)} m`;
       }
       function geoError(error){
         const messages={1:'Standortfreigabe verweigert. Bitte Browserberechtigung prüfen.',2:'Standort derzeit nicht verfügbar.',3:'Standortabfrage hat zu lange gedauert.'};
@@ -640,6 +681,8 @@
       }
       function locateOnce(){
         if(!geolocationAvailable())return;
+        enableCompass();
+        dismissNotice();
         const btn=$('locateMapButton');
         btn.disabled=true;
         btn.setAttribute('aria-busy','true');
@@ -655,6 +698,7 @@
       $('followLocation').addEventListener('change',e=>{
         if(!e.target.checked){if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}$('locationStatus').textContent='Standortverfolgung beendet.';return;}
         if(!geolocationAvailable()){e.target.checked=false;return;}
+        enableCompass();
         $('locationStatus').textContent='Standortverfolgung aktiv …';
         gpsWatchId=navigator.geolocation.watchPosition(p=>updateLocation(p,true),geoError,{enableHighAccuracy:true,maximumAge:10000,timeout:15000});
       });
@@ -728,8 +772,22 @@
       // Bei Browserzurück/-vor wird der geteilte Kartenausschnitt erneut hergestellt.
       window.addEventListener('hashchange',restoreFromHash);
       // Leaflet muss nach Wechsel der mobilen Kartenbibliothek die Abmessungen neu bestimmen.
-      $('closeSidebar').addEventListener('click',()=>setTimeout(()=>map.invalidateSize(),280));
-      window.addEventListener('resize',()=>map.invalidateSize());
+      const refreshSize=()=>{
+        map.invalidateSize({animate:false,pan:false});
+        historicalMap.invalidateSize({animate:false,pan:false});
+        syncHistorical();
+        renderGpsIndicator();
+      };
+      $('closeSidebar').addEventListener('click',()=>setTimeout(refreshSize,280));
+      window.addEventListener('resize',refreshSize);
+      window.addEventListener('orientationchange',()=>setTimeout(refreshSize,220));
+      window.addEventListener('pageshow',refreshSize);
+      if(window.visualViewport){
+        window.visualViewport.addEventListener('resize',refreshSize);
+        window.visualViewport.addEventListener('scroll',refreshSize);
+      }
+      if(typeof ResizeObserver!=='undefined')new ResizeObserver(refreshSize).observe(stage);
+      setTimeout(refreshSize,200);
     });
   </script>
 </body>
