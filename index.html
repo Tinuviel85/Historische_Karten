@@ -71,7 +71,7 @@
     #map{position:absolute;inset:0;background:#e4e8de}
     .leaflet-container{font:inherit}
     .leaflet-historical-pane{width:100%;height:100%}
-    .leaflet-top.leaflet-right{top:76px;right:9px}
+    .leaflet-top.leaflet-right{top:129px;right:9px}
     .leaflet-control-zoom{border:0!important;box-shadow:0 4px 18px #263c3530!important;overflow:hidden;border-radius:11px}
     .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;color:#284c3e!important}
     .leaflet-control-attribution{font-size:10px!important;background:#fffffff0!important;padding:3px 8px!important;margin-bottom:105px!important}
@@ -128,6 +128,11 @@
     .check-row input{accent-color:#1d5b48}
     .toast{position:absolute;z-index:1600;left:50%;top:20px;transform:translate(-50%,-15px);background:#224a3e;color:white;font-size:12px;border-radius:11px;padding:12px 17px;box-shadow:var(--shadow);max-width:min(490px,calc(100% - 25px));line-height:1.45;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;text-align:center}
     .toast.show{opacity:1;transform:translate(-50%,0)}
+    .gps-map-button{position:absolute;z-index:760;right:17px;top:78px;border:1px solid #dce6dd;border-radius:11px;background:white;color:#214c3f;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:750;font-size:12px;box-shadow:0 4px 18px #18372928;min-height:40px}
+    .gps-map-button:hover{background:#eef7f1}
+    .gps-map-button:disabled{opacity:.75;cursor:progress}
+    .gps-map-button svg{width:18px;height:18px;flex:none}
+    .historical-warning{width:100%;background:#fffdf7;border:1px solid #e5d5ac;color:#634d24;border-radius:11px;box-shadow:0 3px 12px #0002;padding:9px 12px;line-height:1.4;font-size:12px;text-align:center;pointer-events:auto}
     .mobile-open{display:none}
     .about-modal{border:1px solid #dfebe0;border-radius:18px;box-shadow:0 22px 70px #1a322b4a;padding:25px;width:min(520px,calc(100% - 30px));max-height:85vh;overflow-y:auto;color:#293f34}
     .about-modal::backdrop{background:#1029219a}
@@ -149,6 +154,7 @@
       .search-box{margin-top:13px}.filter-scroller{padding-top:10px}.side-scroll{padding-top:9px}
       .sidebar-bottom{padding:11px 15px calc(13px + env(safe-area-inset-bottom))}
       .mobile-open{display:flex;position:absolute;z-index:760;left:14px;top:13px;border:0;background:#fff;color:#234c3b;padding:10px 14px;align-items:center;gap:7px;font-weight:750;font-size:12px;border-radius:11px;box-shadow:0 4px 16px #173b2f29}
+      .gps-map-button{top:13px;right:14px;min-height:39px;padding:9px 11px;font-size:12px}
       .map-topbar{left:14px;top:65px;right:14px}.map-title{max-width:calc(100% - 94px);padding:8px 10px}.map-title-name strong{font-size:12px}.yearbox{font-size:11px}
       .top-actions{gap:6px}.icon-btn{height:36px;width:36px}
       .mode-panel{top:119px;left:14px;padding:3px}.mode-btn{padding:8px 12px;font-size:11px}
@@ -245,6 +251,10 @@
     <main class="stage" aria-label="Interaktive historische Karte">
       <div id="map"></div>
       <button id="openSidebar" class="mobile-open" type="button">☰ Karten auswählen</button>
+      <button id="locateMapButton" class="gps-map-button" type="button" title="Auf meinen aktuellen Standort zoomen" aria-label="Auf meinen aktuellen Standort zoomen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Mein Standort
+      </button>
       <div class="map-topbar">
         <div class="map-title" aria-live="polite"><div id="titleYear" class="yearbox">Antike</div><div class="map-title-name"><strong id="titleMap">Historische Karte</strong><small id="titleRegion">Karte laden …</small></div></div>
         <div class="top-actions">
@@ -279,6 +289,7 @@
         </div>
       </div>
       <div class="map-bottom">
+        <div id="historicalWarning" class="historical-warning" role="status" hidden></div>
         <div id="compareRangeBox" class="compare-range-box"><span>Damals</span><input id="compareRange" type="range" min="0" max="100" value="50" step="1" aria-label="Position des Kartenvergleichs"><span>Heute</span></div>
         <div id="viewNotice" class="view-notice" hidden></div>
         <div class="timeline" aria-label="Zeitleiste der Region">
@@ -460,11 +471,17 @@
       $('mapSearch').addEventListener('input',renderList);
       function applyPane(){
         if(!layer)return;
+        // WebKit (iPhone/Edge/Safari): eine Alpha-Maske am Karten-Pane
+        // vermeidet Fehler mit clip-path auf den transformierten Leaflet-Kacheln.
         if(mode==='compare'){
-          historicalPane.style.clipPath=`inset(0 ${100-split*100}% 0 0)`;
+          const cut=`${(split*100).toFixed(2)}%`;
+          const mask=`linear-gradient(to right, #000 0%, #000 ${cut}, transparent ${cut}, transparent 100%)`;
+          historicalPane.style.webkitMaskImage=mask;
+          historicalPane.style.maskImage=mask;
           layer.setOpacity(1);
         }else{
-          historicalPane.style.clipPath='none';
+          historicalPane.style.webkitMaskImage='none';
+          historicalPane.style.maskImage='none';
           layer.setOpacity(opacity);
         }
       }
@@ -551,11 +568,17 @@
         $('prevYear').onclick=()=>{if(pos>0)selectMap(timeline[pos-1].id);};
         $('nextYear').onclick=()=>{if(pos>=0&&pos<timeline.length-1)selectMap(timeline[pos+1].id);};
       }
+      function historicalTilesUnavailable(message){
+        const warning=$('historicalWarning');
+        warning.textContent=message;
+        warning.hidden=false;
+      }
       function selectMap(id,{restoreView=false}={}){
         const m=maps[id];if(!m)return;
         const previous=active;
         if(layer){layer.off();map.removeLayer(layer);layer=null;}
         clearTimeout(checkLayerTimer);failedTiles=0;successfulTiles=0;
+        $('historicalWarning').hidden=true;
         active=m;
         focusMap(m,previous,restoreView);
         layer=L.tileLayer(m.sourceUrl,{
@@ -564,10 +587,10 @@
           keepBuffer:3,updateWhenIdle:true
         });
         layer.on('tileerror',()=>{failedTiles++;});
-        layer.on('tileload',()=>{successfulTiles++;});
+        layer.on('tileload',()=>{successfulTiles++;$('historicalWarning').hidden=true;});
         layer.on('load',()=>{
           if(failedTiles>0&&successfulTiles===0)
-            setNotice('Hier sind keine historischen Kacheln sichtbar. Der externe Kartendienst ist eventuell nicht erreichbar oder deckt diesen Ausschnitt nicht ab.',6500);
+            historicalTilesUnavailable('Für diesen Ausschnitt wurden keine historischen Kacheln geladen. Der Vergleich zeigt daher zweimal die aktuelle Grundkarte. Bitte eine andere historische Karte wählen oder die Quelle prüfen.');
         });
         layer.addTo(map);
         applyPane();
@@ -576,8 +599,8 @@
         $('titleYear').textContent=m.year?String(m.year):m.name.toLowerCase().includes('antik')?'Antike':'Karte';
         renderList();updateTimeline();showDetail();
         checkLayerTimer=setTimeout(()=>{
-          if(active===m&&failedTiles>=4&&successfulTiles===0)
-            setNotice('Der Kartenserver liefert keine passenden Kacheln. Original-URL beibehalten: Bitte Verfügbarkeit beim Anbieter prüfen.',6500);
+          if(active===m&&successfulTiles===0)
+            historicalTilesUnavailable('Die historische Karte „'+m.displayName+'“ ist hier nicht sichtbar. Möglicherweise ist der Kartendienst nicht erreichbar oder dieser Ausschnitt nicht abgedeckt. Die ursprüngliche Karten-URL bleibt erhalten.');
         },5500);
       }
       $('infoButton').addEventListener('click',()=>{detailOpen=!detailOpen;$('detailCard').classList.toggle('open',detailOpen);});
@@ -590,8 +613,18 @@
           gpsAccuracy=L.circle(gpsKnownPosition,{radius:Math.max(accuracy,1),weight:1,color:'#2576a9',fillColor:'#4da9d1',fillOpacity:.09}).addTo(map);
         } else{gpsMarker.setLatLng(gpsKnownPosition);gpsAccuracy.setLatLng(gpsKnownPosition).setRadius(Math.max(accuracy,1));}
         gpsMarker.bindPopup(`Position · Genauigkeit ca. ${Math.round(accuracy)} m`);
-        if(center)map.setView(gpsKnownPosition,Math.max(map.getZoom(),15));
-        $('locationStatus').textContent=`Standort ermittelt · ± ${Math.round(accuracy)} m`;
+        if(center){
+          // Details bis auf Gebäudeebene; eine geringere GPS-Genauigkeit
+          // wird ausdrücklich angezeigt, nicht als exakte Position ausgegeben.
+          const targetZoom=accuracy<=100?18:accuracy<=500?16:14;
+          map.setView(gpsKnownPosition,targetZoom,{animate:true});
+          const regionalCenter=regionDefinitions[active?.region]?.center;
+          if(regionalCenter && active?.region!=='Europa' && active?.region!=='Preußen'
+             && distanceKm([lat,lng],regionalCenter) > 80){
+            setNotice('Standort gefunden. Die ausgewählte historische Karte „'+active.displayName+'“ gehört zu einer anderen Region. Bitte eine Karte für deinen Standort auswählen.',9500);
+          }
+        }
+        $('locationStatus').textContent=`Standort ermittelt · Genauigkeit etwa ± ${Math.round(accuracy)} m`;
       }
       function geoError(error){
         const messages={1:'Standortfreigabe verweigert. Bitte Browserberechtigung prüfen.',2:'Standort derzeit nicht verfügbar.',3:'Standortabfrage hat zu lange gedauert.'};
@@ -605,11 +638,20 @@
         if(!window.isSecureContext){setNotice('Für GPS muss die Seite über HTTPS (z. B. GitHub Pages) geöffnet werden.');return false;}
         return true;
       }
-      $('locateButton').addEventListener('click',()=>{
+      function locateOnce(){
         if(!geolocationAvailable())return;
+        const btn=$('locateMapButton');
+        btn.disabled=true;
+        btn.setAttribute('aria-busy','true');
         $('locationStatus').textContent='Standort wird ermittelt …';
-        navigator.geolocation.getCurrentPosition(p=>updateLocation(p,true),geoError,{enableHighAccuracy:true,maximumAge:10000,timeout:15000});
-      });
+        navigator.geolocation.getCurrentPosition(
+          p=>{btn.disabled=false;btn.removeAttribute('aria-busy');updateLocation(p,true);},
+          error=>{btn.disabled=false;btn.removeAttribute('aria-busy');geoError(error);},
+          {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
+        );
+      }
+      $('locateButton').addEventListener('click',locateOnce);
+      $('locateMapButton').addEventListener('click',locateOnce);
       $('followLocation').addEventListener('change',e=>{
         if(!e.target.checked){if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}$('locationStatus').textContent='Standortverfolgung beendet.';return;}
         if(!geolocationAvailable()){e.target.checked=false;return;}
